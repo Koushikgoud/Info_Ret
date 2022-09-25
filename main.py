@@ -16,11 +16,7 @@ from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
 from datasets import load_dataset
 
-class Indexer:
-    filename = "index.pkl"  # You need to store index file on your disk so that you don't need to
-                         # re-index when running the program again.
-                         # You can name this file however you like. (e.g., index.pkl)
-
+class Indexer:                         # re-index when running the program again.
     def __init__(self):
         # TODO. You will need to create appropriate data structures for the following elements
         self.tok2idx = None                       # map (token to id)
@@ -30,7 +26,7 @@ class Indexer:
         self.raw_ds = None                        # raw documents for result presentation
         self.corpus_stats = { 'avgdl': 0 }        # any corpus-level statistics
         self.stopwords = stopwords.words('english')
-
+        filename = "./index.pkl"  # You need to store index file on your disk so that you don't need to
         if os.path.exists(filename):
             fileloc = open(filename, 'rb')
             dataindx = pickle.load(fileloc)
@@ -49,9 +45,9 @@ class Indexer:
         # TODO. run lemmatizer (e.g., WordNetLemmatizer)
         # TODO. read documents one by one and process
         for l in lst_text:
-            punc = '''!()-[]{};:'"\, <>./?@#$%^&*_~'''
-            if l in punc:  
-                 lst_text = lst_text.replace(l, " ")  
+            # punc = '''!()-[]{};:'"\, <>./?@#$%^&*_~'''
+            # if l in punc:  
+            #      lst_text = lst_text.replace(l, " ")  
             token = RegexpTokenizer('\s+', gaps = True)
             lst_text = token.tokenize(lst_text)
             wrdnetlemma = WordNetLemmatizer()
