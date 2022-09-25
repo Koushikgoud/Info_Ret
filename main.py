@@ -50,7 +50,10 @@ class Indexer:
         # TODO. run lemmatizer (e.g., WordNetLemmatizer)
         # TODO. read documents one by one and process
         for l in lst_text:
-            # TODO. complete this part
+            token = RegexpTokenizer('\s+', gaps = True)
+            lst_text = token.tokenize(lst_text)
+            wrdnetlemma = WordNetLemmatizer()
+            lst_text = wrdnetlemma.lemmatize(lst_text)
             pass
 
     def create_postings_lists(self):
