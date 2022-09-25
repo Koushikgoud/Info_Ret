@@ -16,9 +16,8 @@ from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
 from datasets import load_dataset
 
-
 class Indexer:
-    filename = "./ir.idx"  # You need to store index file on your disk so that you don't need to
+    filename = "index.pkl"  # You need to store index file on your disk so that you don't need to
                          # re-index when running the program again.
                          # You can name this file however you like. (e.g., index.pkl)
 
@@ -50,10 +49,14 @@ class Indexer:
         # TODO. run lemmatizer (e.g., WordNetLemmatizer)
         # TODO. read documents one by one and process
         for l in lst_text:
+            punc = '''!()-[]{};:'"\, <>./?@#$%^&*_~'''
+            if l in punc:  
+                 lst_text = lst_text.replace(l, " ")  
             token = RegexpTokenizer('\s+', gaps = True)
             lst_text = token.tokenize(lst_text)
             wrdnetlemma = WordNetLemmatizer()
             lst_text = wrdnetlemma.lemmatize(lst_text)
+            print(lst_text)
             pass
 
     def create_postings_lists(self):
