@@ -53,15 +53,11 @@ class Indexer:
             token = RegexpTokenizer('\s+', gaps = True)
             lst_text = token.tokenize(l)
             wrdnetlemma = WordNetLemmatizer()
-            lst_text = [wrdnetlemma.lemmatize(lst_text) for w in lst_text]                   # map (token to id)
+            lst_text = [wrdnetlemma.lemmatize(l) for l in lst_text]                   # map (token to id)
             for w in lst_text:
                 self.idx2tok[self.tok2idx[w]] = w
                 enc_doc.append(self.tok2idx[w])
             self.docs.append(enc_doc)
-
-            code.interact(local=dict(globals(), **code.interact()))
-
-
             pass
 
     def create_postings_lists(self):
@@ -72,10 +68,10 @@ class Indexer:
         for di, d in enumerate(self.docs):
             for word_index in d:
                 if word_index in self.posting_list():
-                    pass
+                    self.postings_lists[word_index][0] += 1
+                    self.postings_lists[word_index][1].append(di)
                 else:
                     self.postings_lists[word_index]=[1,[di]]
-
         pass
 
 
@@ -114,4 +110,3 @@ class Indexer:
 if __name__ == "__main__":
     i = Indexer()           # instantiate an indexer
     q = SearchAgent(i)      # document retriever
-    code.interact(local=dict(globals(), **locals())) # interactive shell
