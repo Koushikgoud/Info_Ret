@@ -33,7 +33,7 @@ class Indexer:
 
         if os.path.exists(self.db_file):
             index = pickle.load(open(self.db_file, 'rb'))
-            self.tok2idx = index['tok2idx']
+            # self.tok2idx = index['tok2idx']
             self.idx2tok = index['idx2tok']
             self.docs = index['docs']
             self.raw_ds = index['raw_ds']
@@ -82,10 +82,11 @@ class Indexer:
                     self.postings_lists[word_index][1].append(di)
                 else:
                     self.postings_lists[word_index]=[1,[di]]
+            
         self.corpus_stats['avgdl'] = avgdl/len(self.docs)
         index = {
             'avgdl':self.corpus_stats['avgdl'],
-            'tok2ix': dict(self.tok2idx),
+            'tok2idx': (dict(self.tok2idx)),
             'idx2tok':self.idx2tok,
             'docs': self.docs,
             'raw_ds': self.raw_ds,
