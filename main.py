@@ -16,21 +16,21 @@ from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
 from datasets import load_dataset
 
-class Indexer:                         # re-index when running the program again.
+class Indexer:
+    db_file = "./ir.idx"
+     # You need to store index file on your disk so that you don't need to                     # re-index when running the program again.
     def __init__(self):
-        # TODO. You will need to create appropriate data structures for the following elements
-        self.tok2idx = None                       # map (token to id)
-        self.idx2tok = None                       # map (id to token)
-        self.postings_lists = None                # postings for each word
+        # # TODO. You will need to create appropriate data structures for the following elements
+        self.tok2idx = defaultdict(lambda:len(self.tok2idx))                       # map (token to id)
+        self.idx2tok = dict()                     # map (id to token)
+        self.postings_lists = dict()                # postings for each word
         self.docs = []                            # encoded document list
         self.raw_ds = None                        # raw documents for result presentation
         self.corpus_stats = { 'avgdl': 0 }        # any corpus-level statistics
         self.stopwords = stopwords.words('english')
-        filename = "./index.pkl"  # You need to store index file on your disk so that you don't need to
-        if os.path.exists(filename):
-            fileloc = open(filename, 'rb')
-            dataindx = pickle.load(fileloc)
-            fileloc.close()
+
+
+        if os.path.exists(self.db_file):
             pass
         else:
             # TODO. Load CNN/DailyMail dataset, preprocess and create postings lists.
@@ -47,12 +47,21 @@ class Indexer:                         # re-index when running the program again
         for l in lst_text:
             # punc = '''!()-[]{};:'"\, <>./?@#$%^&*_~'''
             # if l in punc:  
-            #      lst_text = lst_text.replace(l, " ")  
+            #      lst_text = lst_text.replace(l, " ")
+            enc_doc=[]  
+            l = l.lower().strip()
             token = RegexpTokenizer('\s+', gaps = True)
-            lst_text = token.tokenize(lst_text)
+            lst_text = token.tokenize(l)
             wrdnetlemma = WordNetLemmatizer()
-            lst_text = wrdnetlemma.lemmatize(lst_text)
-            print(lst_text)
+            lst_text = [wrdnetlemma.lemmatize(lst_text) for w in lst_text]                   # map (token to id)
+            for w in lst_text:
+                self.idx2tok[self.tok2idx[w]] = w
+                enc_doc.append(self.tok2idx[w])
+            self.docs.append(enc_doc)
+
+            code.interact(local=dict(globals(), **code.interact()))
+
+
             pass
 
     def create_postings_lists(self):
@@ -60,38 +69,45 @@ class Indexer:                         # re-index when running the program again
         # TODO. While indexing compute avgdl and document frequencies of your vocabulary
         # TODO. Save it, so you don't need to do this again in the next runs.
         # Save
-        print("idk what is going on")
+        for di, d in enumerate(self.docs):
+            for word_index in d:
+                if word_index in self.posting_list():
+                    pass
+                else:
+                    self.postings_lists[word_index]=[1,[di]]
+
+        pass
 
 
-class SearchAgent:
-    k1 = 1.5                # BM25 parameter k1 for tf saturation
-    b = 0.75                # BM25 parameter b for document length normalization
+# class SearchAgent:
+#     k1 = 1.5                # BM25 parameter k1 for tf saturation
+#     b = 0.75                # BM25 parameter b for document length normalization
 
-    def __init__(self, indexer):
-        # TODO. set necessary parameters
-        self.i = indexer
+#     def __init__(self, indexer):
+#         # TODO. set necessary parameters
+#         self.i = indexer
 
-    def query(self, q_str):
-        # TODO. This is take a query string from a user, run the same clean_text process,
-        # TODO. Calculate BM25 scores
-        # TODO. Sort  the results by the scores in decsending order
-        # TODO. Display the result
+#     def query(self, q_str):
+#         # TODO. This is take a query string from a user, run the same clean_text process,
+#         # TODO. Calculate BM25 scores
+#         # TODO. Sort  the results by the scores in decsending order
+#         # TODO. Display the result
 
-        results = {}
-        if len(results) == 0:
-            return None
-        else:
-            self.display_results(results)
+#         results = {}
+#         if len(results) == 0:
+#             return None
+#         else:
+#             self.display_results(results)
 
 
-    def display_results(self, results):
-        # Decode
-        # TODO, the following is an example code, you can change however you would like.
-        for docid, score in results[:5]:  # print top 5 results
-            print(f'\nDocID: {docid}')
-            print(f'Score: {score}')
-            print('Article:')
-            print(self.i.raw_ds[docid])
+#     def display_results(self, results):
+#         # Decode
+#         # TODO, the following is an example code, you can change however you would like.
+#         for docid, score in results[:5]:  # print top 5 results
+#             print(f'\nDocID: {docid}')
+#             print(f'Score: {score}')
+#             print('Article:')
+#             print(self.i.raw_ds[docid])
 
 
 
