@@ -75,7 +75,7 @@ class Indexer:
                     self.postings_lists[word_index][1].append(di)
                 else:
                     self.postings_lists[word_index]=[1,[di]]
-        self.corpus_stats['avgd1'] = avgdl/len(self.docs)
+        self.corpus_stats['avgdl'] = avgdl/len(self.docs)
         index = {
             'avgdl':self.corpus_stats['avgdl'],
             'tok2ix': dict(self.tok2idx),
