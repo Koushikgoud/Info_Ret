@@ -32,13 +32,14 @@ class Indexer:
 
 
         if os.path.exists(self.db_file):
-            index = pickle.load(open(self.db_file, 'rb'))
+            # index = pickle.load(open(self.db_file, 'rb'))
             # self.tok2idx = index['tok2idx']
-            self.idx2tok = index['idx2tok']
-            self.docs = index['docs']
-            self.raw_ds = index['raw_ds']
-            self.postings_lists = index['postings']
-            self.corpus_stats['avgl'] = index['avgl']
+            # self.idx2tok = index['idx2tok']
+            # self.docs = index['docs']
+            # self.raw_ds = index['raw_ds']
+            # self.postings_lists = index['postings']
+            # self.corpus_stats['avgl'] = index['avgl']
+            pass
         else:
             # TODO. Load CNN/DailyMail dataset, preprocess and create postings lists.
             ds = load_dataset("cnn_dailymail", '3.0.0', split="test")
@@ -86,13 +87,13 @@ class Indexer:
         self.corpus_stats['avgdl'] = avgdl/len(self.docs)
         index = {
             'avgdl':self.corpus_stats['avgdl'],
-            'tok2idx': (dict(self.tok2idx)),
+            'tok2idx': dict(self.tok2idx),
             'idx2tok':self.idx2tok,
             'docs': self.docs,
             'raw_ds': self.raw_ds,
             'posting': self.postings_lists,
-
         }
+        print(index)
          #Save the cleaned text out
         pickle.dump(index, open(self.db_file, 'wb'))
 
@@ -107,7 +108,7 @@ class SearchAgent:
         self.i = indexer
         self.k1 = self.k1 
         self.b = self.b
-        self.avgl = indexer.corpus_stats['avgl']
+        # self.avgl = indexer.corpus_stats['avgl']
 
 
     def query(self, q_str):
