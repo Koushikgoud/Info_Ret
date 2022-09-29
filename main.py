@@ -1,7 +1,6 @@
 """
 Simple indexer and search engine built on an inverted-index and the BM25 ranking algorithm.
 """
-from curses import KEY_A1
 from fileinput import filename
 import os
 from collections import defaultdict, Counter
@@ -32,41 +31,44 @@ class Indexer:
 
 
         if os.path.exists(self.db_file):
+            print("reading db_file")
             index = pickle.load(open(self.db_file, 'rb'))
-            self.tok2idx = index['tok2idx']
+            self.tok2idx = index.get('tok2idx')
             self.idx2tok = index['idx2tok']
             self.docs = index['docs']
             self.raw_ds = index['raw_ds']
-            self.postings_lists = index['postings']
-            self.corpus_stats['avgl'] = index['avgl']
-            pass
+            self.postings_lists =index.get('postings')
+            self.corpus_stats['avgd1'] = index.get('avgd1')
         else:
             # TODO. Load CNN/DailyMail dataset, preprocess and create postings lists.
+            print("loading CNN dataset")
             ds = load_dataset("cnn_dailymail", '3.0.0', split="test")
-            self.raw_ds = ds['article']
+            self.raw_ds = ds['article'][:1000]
             self.clean_text(self.raw_ds)
             self.create_postings_lists()
-
+            
     def clean_text(self, lst_text, query=False):
         # TODO. this function will run in two modes: indexing and query mode.
         # TODO. run simple whitespace-based tokenizer (e.g., RegexpTokenizer)
         # TODO. run lemmatizer (e.g., WordNetLemmatizer)
         # TODO. read documents one by one and process
-        for l in lst_text:
-            # punc = '''!()-[]{};:'"\, <>./?@#$%^&*_~'''
-            # if l in punc:  
-            #      lst_text = lst_text.replace(l, " ")
-            enc_doc=[]  
+        print('Cleaning texts.........')
+        tokenizer = RegexpTokenizer("\w+")
+        lemmatizer = WordNetLemmatizer()
+        for l in (lst_text if query else tqdm(lst_text)):
+            enc_doc=[]
             l = l.lower().strip()
             token = RegexpTokenizer('\s+', gaps = True)
-            lst_text = token.tokenize(l)
-            wrdnetlemma = WordNetLemmatizer()
-            lst_text = [wrdnetlemma.lemmatize(l) for l in lst_text]                   # map (token to id)
-            for w in lst_text:
-                self.idx2tok[self.tok2idx[w]] = w
-                enc_doc.append(self.tok2idx[w])
-            self.docs.append(enc_doc)
-           
+            seq = token.tokenize(l)
+            lemma = []
+            # wrdnetlemma = WordNetLemmatizer()
+            lst_text = [lemmatizer.lemmatize(l) for l in lst_text]                   # map (token to id)
+            for tok, tag in pos_tag(seq):
+                pos = tag[0].lower()
+                if pos not in ['a', 'r', 'n', 'v']:
+                    pos = 'n'
+                lemma.append(lemmatizer.lemmatize(tok, pos))
+
     def create_postings_lists(self):
         # TODO. This creates postings lists of your corpus
         # TODO. While indexing compute avgdl and document frequencies of your vocabulary
@@ -80,33 +82,30 @@ class Indexer:
                     if di not in self.postings_lists[word_index][1]:
                         self.postings_lists[word_index][0] += 1
                     self.postings_lists[word_index][1].append(di)
+                    
                 else:
                     self.postings_lists[word_index]=[1,[di]]
-            
+                    
+        
         self.corpus_stats['avgdl'] = avgdl/len(self.docs)
         index = {
             'avgdl':self.corpus_stats['avgdl'],
-            'tok2idx': dict(self.tok2idx),
+            'tok2ix': dict(self.tok2idx),
             'idx2tok':self.idx2tok,
             'docs': self.docs,
             'raw_ds': self.raw_ds,
             'posting': self.postings_lists,
         }
-         #Save the cleaned text out
         pickle.dump(index, open(self.db_file, 'wb'))
 
 
 class SearchAgent:
-    k1 = 1.5                # BM25 parameter k1 for tf saturation
-    b = 0.75                # BM25 parameter b for document length normalization
-
     def __init__(self, indexer):
         # TODO. set necessary parameters
         self.i = indexer
-        self.k1 = self.k1 
-        self.b = self.b
-        # self.avgl = indexer.corpus_stats['avgl']
-
+        self.k1 = 1.5                # BM25 parameter k1 for tf saturation
+        self.b = 0.75                # BM25 parameter b for document length normalization
+        self.avg1 = indexer.corpus_stats.get('avg1')
 
     def query(self, q_str):
         # TODO. This is take a query string from a user, run the same clean_text process,
@@ -115,6 +114,21 @@ class SearchAgent:
         # TODO. Display the result
 
         results = {}
+        q_idx = self.i.clean_text([q_str], query = True)
+        if q_idx is not None:
+            for term in q_idx:
+                df = self.i.postings_lists[term][0]
+                w = math.log2(len(self.i.docs) - df + 0.5) / (df + 0.5)
+                for docid in self.i.postings_lists[term][1]:
+                    term_frequency = self.i.postings_lists[term][1][docid]
+                    document_length = len(self.i.docs[docid])
+                    s = (self.k1 * term_frequency * w) / (term_frequency + self.k1 * (1 - self.b + self.b * document_length / self.avgdl))
+                    if docid in results:
+                        results[docid] += s
+                    else:
+                        results[docid] = same
+        results = sorted(results.items(), key = operator.itemgetter(1))
+        results.reverse()
         if len(results) == 0:
             return None
         else:
@@ -135,3 +149,4 @@ class SearchAgent:
 if __name__ == "__main__":
     i = Indexer()           # instantiate an indexer
     q = SearchAgent(i)      # document retriever
+    code.interact(local=dict(globals(), **locals()))
