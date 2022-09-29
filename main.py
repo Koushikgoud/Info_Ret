@@ -1,6 +1,7 @@
 """
 Simple indexer and search engine built on an inverted-index and the BM25 ranking algorithm.
 """
+from curses import KEY_A1
 from fileinput import filename
 import os
 from collections import defaultdict, Counter
@@ -31,7 +32,13 @@ class Indexer:
 
 
         if os.path.exists(self.db_file):
-            pass
+            index = pickle.load(open(self.db_file, 'rb'))
+            self.tok2idx = index['tok2idx']
+            self.idx2tok = index['idx2tok']
+            self.docs = index['docs']
+            self.raw_ds = index['raw_ds']
+            self.postings_lists = index['postings']
+            self.corpus_stats['avgl'] = index['avgl']
         else:
             # TODO. Load CNN/DailyMail dataset, preprocess and create postings lists.
             ds = load_dataset("cnn_dailymail", '3.0.0', split="test")
@@ -58,8 +65,8 @@ class Indexer:
                 self.idx2tok[self.tok2idx[w]] = w
                 enc_doc.append(self.tok2idx[w])
             self.docs.append(enc_doc)
-            pass
-
+            return lst_text
+           
     def create_postings_lists(self):
         # TODO. This creates postings lists of your corpus
         # TODO. While indexing compute avgdl and document frequencies of your vocabulary
@@ -69,7 +76,7 @@ class Indexer:
         for di, d in enumerate(tqdm(self.docs)):
             avgdl += len(d)
             for word_index in d:
-                if word_index in self.posting_list():
+                if word_index in self.postings_lists:
                     if di not in self.postings_lists[word_index][1]:
                         self.postings_lists[word_index][0] += 1
                     self.postings_lists[word_index][1].append(di)
@@ -85,38 +92,44 @@ class Indexer:
             'posting': self.postings_lists,
 
         }
-        pass
+         #Save the cleaned text out
+        pickle.dump(index, open(self.db_file, 'wb'))
 
 
-# class SearchAgent:
-#     k1 = 1.5                # BM25 parameter k1 for tf saturation
-#     b = 0.75                # BM25 parameter b for document length normalization
 
-#     def __init__(self, indexer):
-#         # TODO. set necessary parameters
-#         self.i = indexer
+class SearchAgent:
+    k1 = 1.5                # BM25 parameter k1 for tf saturation
+    b = 0.75                # BM25 parameter b for document length normalization
 
-#     def query(self, q_str):
-#         # TODO. This is take a query string from a user, run the same clean_text process,
-#         # TODO. Calculate BM25 scores
-#         # TODO. Sort  the results by the scores in decsending order
-#         # TODO. Display the result
-
-#         results = {}
-#         if len(results) == 0:
-#             return None
-#         else:
-#             self.display_results(results)
+    def __init__(self, indexer):
+        # TODO. set necessary parameters
+        self.i = indexer
+        self.k1 = self.k1 
+        self.b = self.b
+        self.avgl = indexer.corpus_stats['avgl']
 
 
-#     def display_results(self, results):
-#         # Decode
-#         # TODO, the following is an example code, you can change however you would like.
-#         for docid, score in results[:5]:  # print top 5 results
-#             print(f'\nDocID: {docid}')
-#             print(f'Score: {score}')
-#             print('Article:')
-#             print(self.i.raw_ds[docid])
+    def query(self, q_str):
+        # TODO. This is take a query string from a user, run the same clean_text process,
+        # TODO. Calculate BM25 scores
+        # TODO. Sort  the results by the scores in decsending order
+        # TODO. Display the result
+
+        results = {}
+        if len(results) == 0:
+            return None
+        else:
+            self.display_results(results)
+
+
+    def display_results(self, results):
+        # Decode
+        # TODO, the following is an example code, you can change however you would like.
+        for docid, score in results[:5]:  # print top 5 results
+            print(f'\nDocID: {docid}')
+            print(f'Score: {score}')
+            print('Article:')
+            print(self.i.raw_ds[docid])
 
 
 
