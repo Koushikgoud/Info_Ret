@@ -32,13 +32,13 @@ class Indexer:
 
 
         if os.path.exists(self.db_file):
-            # index = pickle.load(open(self.db_file, 'rb'))
-            # self.tok2idx = index['tok2idx']
-            # self.idx2tok = index['idx2tok']
-            # self.docs = index['docs']
-            # self.raw_ds = index['raw_ds']
-            # self.postings_lists = index['postings']
-            # self.corpus_stats['avgl'] = index['avgl']
+            index = pickle.load(open(self.db_file, 'rb'))
+            self.tok2idx = index['tok2idx']
+            self.idx2tok = index['idx2tok']
+            self.docs = index['docs']
+            self.raw_ds = index['raw_ds']
+            self.postings_lists = index['postings']
+            self.corpus_stats['avgl'] = index['avgl']
             pass
         else:
             # TODO. Load CNN/DailyMail dataset, preprocess and create postings lists.
@@ -66,7 +66,6 @@ class Indexer:
                 self.idx2tok[self.tok2idx[w]] = w
                 enc_doc.append(self.tok2idx[w])
             self.docs.append(enc_doc)
-            return lst_text
            
     def create_postings_lists(self):
         # TODO. This creates postings lists of your corpus
@@ -93,10 +92,8 @@ class Indexer:
             'raw_ds': self.raw_ds,
             'posting': self.postings_lists,
         }
-        print(index)
          #Save the cleaned text out
         pickle.dump(index, open(self.db_file, 'wb'))
-
 
 
 class SearchAgent:
