@@ -65,7 +65,7 @@ class Indexer:
         # TODO. While indexing compute avgdl and document frequencies of your vocabulary
         # TODO. Save it, so you don't need to do this again in the next runs.
         # Save
-        avgd1=0
+        avgdl=0
         for di, d in enumerate(tqdm(self.docs)):
             avgdl += len(d)
             for word_index in d:
@@ -75,7 +75,7 @@ class Indexer:
                     self.postings_lists[word_index][1].append(di)
                 else:
                     self.postings_lists[word_index]=[1,[di]]
-        self.corpus_stats['avgd1'] = avgd1/len(self.docs)
+        self.corpus_stats['avgd1'] = avgdl/len(self.docs)
         index = {
             'avgdl':self.corpus_stats['avgdl'],
             'tok2ix': dict(self.tok2idx),
