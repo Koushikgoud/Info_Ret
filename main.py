@@ -105,7 +105,7 @@ class SearchAgent:
         self.i = indexer
         self.k1 = 1.5                # BM25 parameter k1 for tf saturation
         self.b = 0.75                # BM25 parameter b for document length normalization
-        self.avg1 = indexer.corpus_stats.get('avg1')
+        self.avg1 = indexer.corpus_stats.get('avgl')
 
     def query(self, q_str):
         # TODO. This is take a query string from a user, run the same clean_text process,
@@ -126,7 +126,7 @@ class SearchAgent:
                     if docid in results:
                         results[docid] += s
                     else:
-                        results[docid] = same
+                        results[docid] = s
         results = sorted(results.items(), key = operator.itemgetter(1))
         results.reverse()
         if len(results) == 0:
@@ -136,8 +136,6 @@ class SearchAgent:
 
 
     def display_results(self, results):
-        # Decode
-        # TODO, the following is an example code, you can change however you would like.
         for docid, score in results[:5]:  # print top 5 results
             print(f'\nDocID: {docid}')
             print(f'Score: {score}')
